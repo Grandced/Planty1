@@ -21,13 +21,39 @@ if ( !function_exists( 'child_theme_configurator_css' ) ):
 endif;
 add_action( 'wp_enqueue_scripts', 'child_theme_configurator_css', 10 );
 // END ENQUEUE PARENT ACTION
-
 add_filter( 'wp_nav_menu_items', 'add_extra_item_to_nav_menu', 10, 2 );
+
 function add_extra_item_to_nav_menu( $items, $args ) {
-	
-    if (is_user_logged_in() && $args->menu == "planty") {
-         $items .= '<li class="menu-item menu-item-type-post_type menu-item-object-page parent hfe-creative-menu"><a href="#">My Account</a></li>';
+    // Vérifie si l'utilisateur est connecté et si le menu est celui avec le nom "header"
+    if ( is_user_logged_in() && $args->menu == "header" ) {
+        // Définir l'URL de la page d'administration
+        $admin_url = 'http://planty.local/wp-admin/'; // URL vers laquelle "Admin" redirige
+
+        // Créer l'élément "Admin" avec le lien vers la page d'administration
+        $new_item = '<li class="menu-item menu-item-type-custom menu-item-object-custom hfe-creative-menu"><a href="' . esc_url($admin_url) . '"><strong>Admin</strong></a></li>';
+
+        // Encapsuler les éléments de menu existants avec <ul> et les convertir en tableau
+        $items = '<ul class="horizontal-menu">' . $items . '</ul>';
+        $items_array = explode('</li>', $items);
+
+        // Insérer l'élément "Admin" à la position souhaitée (par exemple, après le premier élément)
+        $position = 1; // Position après le premier élément
+        array_splice($items_array, $position, 0, $new_item);
+
+        // Ajouter la balise de fermeture </li> à tous les éléments, sauf au dernier
+        $items_with_closing_li = implode('</li>', $items_array);
+        $items_with_closing_li = rtrim($items_with_closing_li, '</li>');
+        $items_with_closing_li .= '</li>';
+        
+        // Reconstruire la chaîne d'éléments du menu
+        $items = '<ul class="horizontal-menu">' . $items_with_closing_li . '</ul>';
     }
-  
+
     return $items;
 }
+
+function custom_styles() {
+    wp_enqueue_style( 'custom-css', get_stylesheet_directory_uri() . '/style.css' );
+}
+
+add_action( 'wp_enqueue_scripts', 'custom_styles' );
